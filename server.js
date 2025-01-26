@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 // 3. The token that you set in the eBay Developer Portal
 //    Go to eBay Dev Portal -> "Alerts & Notifications" -> "Verification token"
 //    Put the SAME string in your hosting platform's environment variables.
-const EBAY_VERIFICATION_TOKEN = process.env.EBAY_VERIFICATION_TOKEN || "my-secret-token-123";
+const EBAY_VERIFICATION_TOKEN = process.env.EBAY_VERIFICATION_TOKEN || "my-secret-token-12345ser543tywer";
 
 /***************************************************************
  * POST /ebay-webhook
