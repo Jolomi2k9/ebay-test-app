@@ -1,0 +1,12 @@
+{
+    "name": "heroku-simple-endpoint",
+    "version": "1.0.0",
+    "description": "A simple Node.js Express endpoint for webhooks",
+    "main": "server.js",
+    "scripts": {
+      "start": "node server.js"
+    },
+    "dependencies": {
+    "express": "^4.18.2"
+  }
+}
