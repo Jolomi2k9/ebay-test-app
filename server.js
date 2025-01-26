@@ -1,34 +1,37 @@
 /*****************************************************************
- * server.js — Node/Express app for eBay webhook verification & handling
+ * server.js — Updated to return the challenge_code for eBay's validation
  *****************************************************************/
 const express = require("express");
 const bodyParser = require("body-parser");
 
-// 1. Initialize Express
 const app = express();
-
-// 2. Use JSON body parser so we can read incoming JSON payloads
 app.use(bodyParser.json());
 
-// 3. eBay Verification Token (must match what's in eBay Dev Portal)
+// The token used for POST verification, as before:
 const EBAY_VERIFICATION_TOKEN = process.env.EBAY_VERIFICATION_TOKEN || "my-secret-token-12345ser543tywer";
 
-/***************************************************************
- * GET /ebay-webhook
- * eBay may send a GET request to validate the endpoint existence.
- ***************************************************************/
+//
+// --- GET /ebay-webhook ---
+//
 app.get("/ebay-webhook", (req, res) => {
-  // Respond with 200 so eBay sees the endpoint is alive
-  console.log("GET request on /ebay-webhook (likely eBay validation).");
-  return res.status(200).send("GET endpoint is alive");
+  console.log("GET /ebay-webhook query:", req.query);
+
+  // eBay typically sends a "challenge_code" parameter during verification
+  const challengeCode = req.query.challenge_code;
+
+  if (challengeCode) {
+    // Respond with that exact challenge code so eBay knows we're valid
+    console.log(`>> Responding with challengeCode: ${challengeCode}`);
+    return res.status(200).send(challengeCode);
+  }
+
+  // If no challenge_code is present, just respond with a basic message
+  return res.status(200).send("GET endpoint is alive, but no challenge_code provided.");
 });
 
-/***************************************************************
- * POST /ebay-webhook
- * This route handles:
- *   - eBay's verification checks (token test) via POST
- *   - Actual account deletion events
- ***************************************************************/
+//
+// --- POST /ebay-webhook --- (unchanged from your existing code)
+//
 app.post("/ebay-webhook", (req, res) => {
   console.log("Incoming eBay request body:", req.body);
 
@@ -39,12 +42,11 @@ app.post("/ebay-webhook", (req, res) => {
     return res.status(200).send("VERIFICATION_SUCCESS");
   }
 
-  // 2. If not verification, check for an actual "Marketplace Account Deletion" event
+  // 2. If not verification, handle "MARKETPLACE_ACCOUNT_DELETION"
   if (req.body.eventName === "MARKETPLACE_ACCOUNT_DELETION") {
     const userId = req.body.userId || "(unknown user)";
     console.log(`>> Received account deletion event for user: ${userId}`);
-
-    // TODO: Implement your user data deletion / anonymization logic here
+    // ...handle deletion...
     return res.status(200).send("Account deletion handled");
   }
 
@@ -53,13 +55,10 @@ app.post("/ebay-webhook", (req, res) => {
   return res.status(400).send("INVALID_REQUEST");
 });
 
-// 4. Basic GET route at the root for a simple health check
+// Basic root for health check
 app.get("/", (req, res) => {
   res.send("Hello from eBay Webhook Handler!");
 });
 
-// 5. Start the server on the correct port
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
